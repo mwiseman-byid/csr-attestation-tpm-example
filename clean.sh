@@ -14,6 +14,6 @@ rm $acadir/* 2> /dev/null
 
 if [ "$1" == "all" ]; then
         echo -e "Deleting: " $cadir
-        rm $cadir/* 2> /del/null
+        rm $cadir/* 2> /dev/null
 fi
 

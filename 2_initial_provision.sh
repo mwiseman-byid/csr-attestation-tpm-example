@@ -6,17 +6,17 @@ set -e
 echo -e "Creating EK"
 tpm2_createek -c $cdir/ek.ctx -u $cdir/ek.pub
 # 
-# the ak will not be persistent in the TPM but TSS will load it from the ek.ctx file
+# the AK will not be persistent in the TPM but TSS will load it from the ek.ctx file
 echo -e "\nCreating AK"
 tpm2_createak -C $cdir/ek.ctx -G rsa -c $cdir/ak.ctx -u $cdir/ak.pub -r $cdir/ak.priv
 #
 #tpm2_create -g sha256 -G rsa:rsassa -u certify.pub -r certify.priv \
 # the Primary Storage Key (SRK) will not be persistent in the TPM but TSS will load it from the primary.ctx file
-echo -e "\nCreating Primary Storate Key (SRK)"
+echo -e "\nCreating Primary Storage Key (SRK)"
 tpm2_createprimary -C o -c $cdir/primaryStorage.ctx
 #
-# Key ak PEM formatted public key
-echo -e "\nCreating Primary Storate Key (SRK)"
+# Key AK PEM formatted public key
+echo -e "\nRead the AK public key in PEM format"
 tpm2_readpublic -c $cdir/ak.ctx -f pem -o $cdir/ak.pem
 #
 # Create an AK Certificate
