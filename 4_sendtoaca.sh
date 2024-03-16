@@ -1,3 +1,3 @@
 # /bin/bash
-source ./dirs.sh
+. ./dirs.sh
 cp $cdir/attestation_statement.tar $acadir
