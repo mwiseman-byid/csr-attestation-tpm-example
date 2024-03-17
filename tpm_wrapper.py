@@ -105,5 +105,5 @@ pubkey_der = pubkey.public_bytes(serialization.Encoding.DER, serialization.Publi
 spki, _ = decode(pubkey_der, rfc5280.SubjectPublicKeyInfo())
 cri_pyasn1['subjectPKInfo']['subjectPublicKey'] = spki['subjectPublicKey']
 
-with open('out.csr', 'wb') as f:
+with open('out.cri', 'wb') as f:
     f.write(encode(cri_pyasn1))

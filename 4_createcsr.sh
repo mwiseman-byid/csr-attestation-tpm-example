@@ -1,3 +1,6 @@
 # /bin/bash
 . ./dirs.sh
-cp $cdir/attestation_statement.tar $acadir
+set -e
+
+python3 tpm_wrapper.py $cdir/key1.attest $cdir/key1-attest.sig $cdir/key1.pub $cdir/key1.pem
+
