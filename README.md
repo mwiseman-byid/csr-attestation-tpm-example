@@ -1,4 +1,6 @@
 # csr-attestation-tpm-example
+
+## Dependencies
 This uses the TCG TSS command line utilities from https://github.com/tpm2-software.
 This is normally obtained by downloading from your distro. However, there is an issue
 with the released files where the command tpm2_print -t TPMS_ATTEST command
@@ -6,6 +8,24 @@ was not implemented. I've filed an issue and was fixed but (as of 23-03-08) was
 not merged. I have copied the fixed file to my own reposity at
 https://github.com/mwiseman-byid/tpm2-tools. This does require building the tpm2-tss
 from the main branch.
+
+There is a python sub-component, it requires python3, pip, and venv:
+
+1. Create a virtual environment
+    ```shell
+    python -m venv venv
+    ```
+2. Activate the virtual environment
+    ```shell
+    source venv/bin/activate
+    ```
+3. Install the dependencies
+
+    ```shell
+    pip install -r requirements.txt
+    ```
+
+## Description
 
 This example builds the attestation_statement init a .tar file and does not add
 the attestation_statment into a csr with the defined new extension. This is

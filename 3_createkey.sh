@@ -34,4 +34,4 @@ tpm2_print -t TPMS_ATTEST $cdir/key1.attest
 echo -e "\nRead the key1 public key in PEM format"
 tpm2_readpublic -c $cdir/key1.ctx -f pem -o $cdir/key1.pem
 # Create the attestation_statement as a .tar file for now.
-tar cvf $cdir/attestation_statement.tar -C $cdir key1.attest key1-attest.sig key1.pub ak.cert
+#tar cvf $cdir/attestation_statement.tar -C $cdir key1.attest key1-attest.sig key1.pub ak.cert
