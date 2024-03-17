@@ -13,4 +13,6 @@ openssl dgst -sha256 -binary -out $cdir/out-cri.hash $cdir/out.cri
 echo -e "\n*** Getting attestation for key1 ***"
 tpm2_sign -c $cdir/key1.ctx -g sha256 -d $cdir/out-cri.hash -f plain -o $cdir/out-cri.sig
 
+python3 attach_sig_to_cri.py client/out.cri client/out-cri.sig
+
 openssl req -noout -text -verify -inform der -in out.csr
