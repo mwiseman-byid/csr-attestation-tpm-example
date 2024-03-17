@@ -1,4 +1,4 @@
 # /bin/bash
-cdir='./client'
-cadir='./ca'
-acadir='./aca'
+export cdir='./client'
+export cadir='./ca'
+export acadir='./aca'

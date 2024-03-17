@@ -1,5 +1,5 @@
 # /bin/bash
-source ./dirs.sh
+. ./dirs.sh
 
 # Clear TPM
 echo -e "Clearing TPM"

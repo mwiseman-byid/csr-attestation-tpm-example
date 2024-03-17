@@ -1,5 +1,5 @@
 # /bin/bash
-source ./dirs.sh
+. ./dirs.sh
 set -e
 
 # This will make the EK persistent
@@ -23,5 +23,6 @@ tpm2_readpublic -c $cdir/ak.ctx -f pem -o $cdir/ak.pem
 echo -e "\nCreate an AK Certificate"
 #openssl req -key $cdir/ak.pem -new -out $cdir/ak.pem
 openssl req -new -noenc -config ./openssl-AK.conf -keyout $cdir/ak-fake.key -out $cdir/ak-fake.csr
+
 openssl x509 -req -CA $cadir/rootCACert.pem -CAkey $cadir/rootCAKey.pem -force_pubkey $cdir/ak.pem -in $cdir/ak-fake.csr -out $cdir/ak.cert
 rm $cdir/ak-fake.*

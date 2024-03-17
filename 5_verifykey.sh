@@ -1,5 +1,5 @@
 # /bin/bash
-source ./dirs.sh
+. ./dirs.sh
 set -e
 # Expanding attestation_statement
 echo -e "*** Expanding attestation_statement ***"
