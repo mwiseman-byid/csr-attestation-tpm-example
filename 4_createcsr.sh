@@ -3,7 +3,8 @@
 set -e
 
 # Wrap the TPM data into an ASN.1 CertificationRequestInfo output to 'out.cri'
-python3 tpm_wrapper.py $cdir/key1.attest $cdir/key1-attest.sig $cdir/key1.pub $cdir/key1.pem
+# Note: the OID '1.2.3.999' needs to be replaced with something TCG-assigned.
+python3 reate_cri_from_tcg_attest_certify.py $cdir/key1.attest $cdir/key1-attest.sig $cdir/key1.pub $cdir/key1.pem $cdir/ak.cert $cadir/rootCACert.pem
 mv out.cri $cdir/out.cri
 
 openssl dgst -sha256 -binary -out $cdir/out-cri.hash $cdir/out.cri
