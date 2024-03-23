@@ -1,4 +1,4 @@
-# /bin/bash
+#!/bin/bash
 . ./dirs.sh
 set -e
 
