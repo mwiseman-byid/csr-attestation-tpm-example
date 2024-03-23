@@ -16,6 +16,10 @@ sudo tpm2_sign -c $cdir/key1.ctx -g sha256 -d $cdir/out-cri.hash -f plain -o $cd
 python3 attach_sig_to_cri.py $cdir/out.cri $cdir/out-cri.sig
 mv out.csr $cdir/out.csr
 
+# Check that the signature was applied correctly
+# Note that openssl will return SUCCESS (0) regardless,
+# so you have to look at the command-line output
 openssl req -noout -verify -inform der -in $cdir/out.csr
 
+# Convert the output file to PEM
 openssl req -inform der -in $cdir/out.csr -out csr.pem

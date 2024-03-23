@@ -25,11 +25,25 @@ There is a python sub-component, it requires python3, pip, and venv:
     pip install -r requirements.txt
     ```
 
+## DON'T RUN THIS ON BARE METAL!
+
+As a note to newbie TPM develeopers, running this code on your bare-metal TPM runs the risk of making your TPM in-operable and therefore causing your operating system fail to boot. The risk of this is low since these scripts simply add more keys to the TPM and do not disturb the existing ones, but still it is recommended that this development be done within a guest OS that gets a virtualized TPM from the hypervisor.
+
 ## Description
 
-This example builds the attestation_statement init a .tar file and does not add
-the attestation_statment into a csr with the defined new extension. This is
-work to do.
+This example ultimately creates an output file `csr.pem` which is a request to certify `key1` stored within the local TPM and contains the `id-aa-evidence` extension containing a TcgTpmCertify evidence bundle.
+
+If the scripts in this repo are executed in order, then they perform (roughly):
+
+1. Create a local OpenSSL CA to act as a new owner for the TPM's attestation key.
+
+2. Create a new EK and AK within the TPM. Create a certificate for the AK under the local OpenSSL CA.
+
+3. Create an application key `key1` within the TPM.
+
+4. Create a CSR for `key1` containing an `id-aa-evidence` attribute according to draft-ietf-lamps-csr-attestation.
+
+5. Use the TPM to perform self-checks and verify the Attestation data.
 
 As the tpm2_tools man pages don't specifically state the strutures returned, they
 described here (only the parameters used in this demo are described):
@@ -46,6 +60,7 @@ described here (only the parameters used in this demo are described):
 > >
 > >-s PEM Formatted signature over key1.attest (key1-attest.sig)
 > > (in PEM format due to "-f plain")
+
 # How this works
 1. This starts with the assumption that the AK is already created and the AK Cert
 is signed by a CA trusted by the ACA.
