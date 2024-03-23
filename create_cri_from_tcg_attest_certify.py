@@ -1,19 +1,29 @@
 import sys
+import argparse
+import io
 
 from cryptography import x509
 from cryptography.hazmat._oid import NameOID
 from cryptography.hazmat.primitives import asymmetric, serialization, hashes
+
 from pyasn1.type import univ, char, namedtype, constraint
-import argparse
-from pyasn1_alt_modules import rfc2986, rfc5280
+from pyasn1.codec.der import decoder 
 from pyasn1.codec.der.decoder import decode
 from pyasn1.codec.der.encoder import encode
 
+from pyasn1_modules import pem
+from pyasn1_alt_modules import rfc2986, rfc5280, rfc5751
 
-# CHANGE ME
-EVIDENCE_STATEMENT_OID = univ.ObjectIdentifier((1, 2, 3, 999))
 
-SEQUENCE_MAX_SIZE = 10
+# CHANGE ME once TCG assigns one.
+EvidenceStatementTcgAttestCertify
+TCG_ATTEST_CERTIFY_OID = univ.ObjectIdentifier((1, 2, 3, 999))
+
+# CHANGE ME once these is early allocation of this 
+# id-aa-evidence OBJECT IDENTIFIER ::= { id-aa TBDAA }
+id_aa_evidence = univ.ObjectIdentifier(rfc5751.id_aa + (59,))
+
+MAX = 10
 
 # RFC 9500 section 2.1
 _RSA_DUMMY_KEY = serialization.load_pem_private_key("""
@@ -62,21 +72,10 @@ parser.add_argument(TPM_S_ATTEST_ARG, type=argparse.FileType('rb'))
 parser.add_argument(SIGNATURE_ARG, type=argparse.FileType('rb'))
 parser.add_argument(TPM_T_PUBLIC_ARG, type=argparse.FileType('rb'))
 parser.add_argument('publickeyfilepem', type=argparse.FileType('rb'))
-parser.add_argument('akCertChain', type=argparse.FileType('rb'), nargs='+')
+parser.add_argument('akCertChain', type=argparse.FileType('r'), nargs='+')
 
 args = parser.parse_args()
 args_vars = vars(args)
-
-
-
-# From RFC8551, which does not appear to be in pyasn1_alt_modules
-id_aa = univ.ObjectIdentifier((1, 2, 840, 113549, 1, 9, 16, 2))
-
-# -- Branch for attestation statement types
-# id-ata OBJECT IDENTIFIER ::= { id-pkix (TBD1) }
-id_ata = univ.ObjectIdentifier(rfc5280.id_pkix.asTuple() + (999,))
-# id-aa-evidence OBJECT IDENTIFIER ::= { id-aa TBDAA }
-id_aa_evidence = univ.ObjectIdentifier(id_aa + (999,))
 
 
 # from draft-ietf-lamps-csr-attestation section A.2
@@ -108,7 +107,7 @@ class EvidenceStatementTcgAttestCertify(univ.Sequence):
 # EvidenceStatements ::= SEQUENCE SIZE (1..MAX) OF EvidenceStatement
 class EvidenceStatements(univ.SequenceOf):
     componentType = EvidenceStatementTcgAttestCertify()
-    subtypeSpec = constraint.ValueSizeConstraint(1, 10)
+    subtypeSpec = constraint.ValueSizeConstraint(1, MAX)
 
 # EvidenceBundle ::= SEQUENCE
 # {
@@ -121,9 +120,15 @@ class EvidenceBundle(univ.Sequence):
         namedtype.NamedType('evidence', EvidenceStatements()),
         namedtype.OptionalNamedType('certs', univ.SequenceOf(
             componentType = rfc5280.Certificate()).subtype( 
-                subtypeSpec = constraint.ValueSizeConstraint(1, SEQUENCE_MAX_SIZE)
+                subtypeSpec = constraint.ValueSizeConstraint(1, MAX)
         ))
     )
+
+# EvidenceBundles ::= SEQUENCE SIZE (1..MAX) OF EvidenceBundle
+class EvidenceBundles(univ.SequenceOf):
+    componentType = EvidenceBundle()
+    subtypeSpec = constraint.ValueSizeConstraint(1, MAX)
+
 
 # Construct an Tcg-attest-certify as per draft-ietf-lamps-csr-attestation appendix A.2
 tcg_attest_certify = TcgAttestCertify()
@@ -135,19 +140,41 @@ tcg_attest_certify[TPM_T_PUBLIC] = args_vars[TPM_T_PUBLIC_ARG].read()
 
 # Construct an EvidenceStatement
 evidenceStatement = EvidenceStatementTcgAttestCertify()
-evidenceStatement['type'] = EVIDENCE_STATEMENT_OID
+evidenceStatement['type'] = TCG_ATTEST_CERTIFY_OID
 evidenceStatement['stmt'] = tcg_attest_certify
 evidenceStatement['hint'] = char.IA5String('TcgAttestCertify.trustedcomputinggroup.org')
 
 # Construct an EvidenceStatements
-evidenceStatements = EvidenceStatements((evidenceStatement))
+evidenceBundle_evidenceStatements = EvidenceStatements()
+evidenceBundle_evidenceStatements.append(evidenceStatement)
 
 # Construct an EvidenceBundle
-print(args_vars['akCertChain'])
-for cert in args_vars['akCertChain']:
-    # TODO parse a PEM cert into a rfc5280.Certificate
-    pass
-exit(0)
+evidenceBundle = EvidenceBundle()
+evidenceBundle['evidence'].append(evidenceBundle_evidenceStatements)
+for certFile in args_vars['akCertChain']:
+    substrate=pem.readPemFromFile(certFile)
+    if substrate == '':
+        print('File '+certFile.name+' could not be read as PEM. Skipping')
+        continue
+
+    certificate, rest = decoder.decode(io.BytesIO(substrate), asn1Spec=rfc5280.Certificate())
+    evidenceBundle['certs'].append(certificate)
+
+
+# Construct an EvidenceBundles
+evidenceBundles = EvidenceBundles()
+evidenceBundles.append(evidenceBundle)
+
+
+# Construct an attr-evidence
+# -- For PKCS#10
+# attr-evidence ATTRIBUTE ::= {
+#   TYPE EvidenceBundles
+#   IDENTIFIED BY id-aa-evidence
+# }
+attr_evidence = rfc5280.Attribute()
+attr_evidence['type'] = id_aa_evidence
+attr_evidence['values'].append(evidenceBundles)
 
 
 csr_builder = x509.CertificateSigningRequestBuilder()
@@ -162,28 +189,18 @@ csr_builder = csr_builder.subject_name(x509.Name(
     ]
 ))
 
-csr = csr_builder.sign(_RSA_DUMMY_KEY, hashes.SHA256())
-cri_der = csr.tbs_certrequest_bytes
+# csr_builder.add_attribute(id_aa_evidence_cryptagraphy, evidenceBundles)
 
+csr = csr_builder.sign(_RSA_DUMMY_KEY, hashes.SHA256())
+
+# Extract the CertificateRequestInfo (ie throw away the signature)
+cri_der = csr.tbs_certrequest_bytes
 cri_pyasn1, _ = decode(cri_der, rfc2986.CertificationRequestInfo())
 
-# Replace this with the real one
-attr = rfc2986.Attribute()
-attr['type'] = univ.ObjectIdentifier('2.23.133.9999.1')
-attr['values'].append(tcg_attest_certify)
+# Add in the evidence attribute.
+cri_pyasn1['attributes'].append(attr_evidence)
 
-# For PKCS#10
-#attr-evidence ATTRIBUTE ::= {
-#  TYPE EvidenceBundles
-#  IDENTIFIED BY id-aa-evidence
-#}
-# attr_evidence = rfc2986.Attribute()
-# attr_evidence['type'] = univ.ObjectIdentifier(args_vars[EVIDENCE_STATEMENT_OID_ARG])
-# attr_evidence['values'].append(tcg_attest_certify)
-
-
-cri_pyasn1['attributes'].append(attr)
-
+# Swap out the dummy public key for the TPM-controlled one
 pubkey = serialization.load_pem_public_key(args.publickeyfilepem.read())
 pubkey_der = pubkey.public_bytes(serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo)
 
