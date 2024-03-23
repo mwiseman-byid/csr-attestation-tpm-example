@@ -16,7 +16,6 @@ from pyasn1_alt_modules import rfc2986, rfc5280, rfc5751
 
 
 # CHANGE ME once TCG assigns one.
-EvidenceStatementTcgAttestCertify
 TCG_ATTEST_CERTIFY_OID = univ.ObjectIdentifier((1, 2, 3, 999))
 
 # CHANGE ME once these is early allocation of this 
