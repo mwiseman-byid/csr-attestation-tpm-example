@@ -118,10 +118,10 @@ class EvidenceStatements(univ.SequenceOf):
 # I'm cheating here and just using rfc5280 Certificate and not bothering with CertificateAlternatives
 class EvidenceBundle(univ.Sequence):
     componentType = namedtype.NamedTypes(
-        namedtype.NamedType('evidence', EvidenceStatements),
+        namedtype.NamedType('evidence', EvidenceStatements()),
         namedtype.OptionalNamedType('certs', univ.SequenceOf(
-            componentType = rfc5280.Certificate(),
-            subtypeSpec = constraint.ValueSizeConstraint(1, SEQUENCE_MAX_SIZE)
+            componentType = rfc5280.Certificate()).subtype( 
+                subtypeSpec = constraint.ValueSizeConstraint(1, SEQUENCE_MAX_SIZE)
         ))
     )
 
