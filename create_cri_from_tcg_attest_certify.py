@@ -94,13 +94,13 @@ class TcgAttestCertify(univ.Sequence):
 # EvidenceStatement ::= SEQUENCE {
 #    type   EVIDENCE-STATEMENT.&id({EvidenceStatementSet}),
 #    stmt   EVIDENCE-STATEMENT.&Type({EvidenceStatementSet}{@type}),
-#    hint   IA5String OPTIONAL
+#    hint   UTF8String OPTIONAL
 # }
 class EvidenceStatementTcgAttestCertify(univ.Sequence):
     componentType = namedtype.NamedTypes(
         namedtype.NamedType('type', univ.ObjectIdentifier()),
         namedtype.NamedType('stmt', TcgAttestCertify()),
-        namedtype.OptionalNamedType('hint', char.IA5String())
+        namedtype.OptionalNamedType('hint', char.UTF8String())
     )
 
 # EvidenceStatements ::= SEQUENCE SIZE (1..MAX) OF EvidenceStatement
@@ -141,7 +141,7 @@ tcg_attest_certify[TPM_T_PUBLIC] = args_vars[TPM_T_PUBLIC_ARG].read()
 evidenceStatement = EvidenceStatementTcgAttestCertify()
 evidenceStatement['type'] = TCG_ATTEST_CERTIFY_OID
 evidenceStatement['stmt'] = tcg_attest_certify
-evidenceStatement['hint'] = char.IA5String('TcgAttestCertify.trustedcomputinggroup.org')
+evidenceStatement['hint'] = char.UTF8String('TcgAttestCertify.trustedcomputinggroup.org')
 
 # Construct an EvidenceStatements
 evidenceBundle_evidenceStatements = EvidenceStatements()
