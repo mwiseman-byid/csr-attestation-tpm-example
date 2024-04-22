@@ -22,6 +22,8 @@ TCG_ATTEST_CERTIFY_OID = univ.ObjectIdentifier((1, 2, 3, 999))
 # id-aa-evidence OBJECT IDENTIFIER ::= { id-aa TBDAA }
 id_aa_evidence = univ.ObjectIdentifier(rfc5751.id_aa + (59,))
 
+hint = "tpmverifier.example.com"
+
 MAX = 10
 
 # RFC 9500 section 2.1
@@ -141,7 +143,7 @@ tcg_attest_certify[TPM_T_PUBLIC] = args_vars[TPM_T_PUBLIC_ARG].read()
 evidenceStatement = EvidenceStatementTcgAttestCertify()
 evidenceStatement['type'] = TCG_ATTEST_CERTIFY_OID
 evidenceStatement['stmt'] = tcg_attest_certify
-evidenceStatement['hint'] = char.UTF8String('TcgAttestCertify.trustedcomputinggroup.org')
+evidenceStatement['hint'] = char.UTF8String(hint)
 
 # Construct an EvidenceStatements
 evidenceBundle_evidenceStatements = EvidenceStatements()
