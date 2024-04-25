@@ -3,7 +3,7 @@ import argparse
 import io
 
 from cryptography import x509
-from cryptography.hazmat._oid import NameOID
+from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import asymmetric, serialization, hashes
 
 from pyasn1.type import univ, char, namedtype, constraint
