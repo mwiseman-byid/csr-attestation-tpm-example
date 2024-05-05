@@ -24,6 +24,7 @@ id_aa_evidence = univ.ObjectIdentifier(rfc5751.id_aa + (59,))
 
 hint = "tpmverifier.example.com"
 
+# Generic upper limit for ASN.1 Sequences and stuff.
 MAX = 10
 
 # RFC 9500 section 2.1
@@ -132,17 +133,17 @@ class EvidenceBundles(univ.SequenceOf):
 
 
 # Construct an Tcg-attest-certify as per draft-ietf-lamps-csr-attestation appendix A.2
-tcg_attest_certify = TcgAttestCertify()
-tcg_attest_certify[TPM_S_ATTEST] = args_vars[TPM_S_ATTEST_ARG].read()
-tcg_attest_certify[SIGNATURE] = args_vars[SIGNATURE_ARG].read()
-tcg_attest_certify[TPM_T_PUBLIC] = args_vars[TPM_T_PUBLIC_ARG].read()
+tcg_csr_certify = TcgAttestCertify()
+tcg_csr_certify[TPM_S_ATTEST] = args_vars[TPM_S_ATTEST_ARG].read()
+tcg_csr_certify[SIGNATURE] = args_vars[SIGNATURE_ARG].read()
+tcg_csr_certify[TPM_T_PUBLIC] = args_vars[TPM_T_PUBLIC_ARG].read()
 
-#tcg_attest_certify_der = encode(tcg_attest_certify)
+#tcg_csr_certify_der = encode(tcg_csr_certify)
 
 # Construct an EvidenceStatement
 evidenceStatement = EvidenceStatementTcgAttestCertify()
 evidenceStatement['type'] = TCG_CSR_CERTIFY_OID
-evidenceStatement['stmt'] = tcg_attest_certify
+evidenceStatement['stmt'] = tcg_csr_certify
 evidenceStatement['hint'] = char.UTF8String(hint)
 
 # Construct an EvidenceStatements
