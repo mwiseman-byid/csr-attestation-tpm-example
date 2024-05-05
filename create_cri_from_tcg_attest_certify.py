@@ -1,18 +1,19 @@
-import sys
 import argparse
 import io
 
 from cryptography import x509
 from cryptography.x509.oid import NameOID
-from cryptography.hazmat.primitives import asymmetric, serialization, hashes
+from cryptography.hazmat.primitives import serialization, hashes
 
-from pyasn1.type import univ, char, namedtype, constraint
+from pyasn1.type import univ, char, namedtype, constraint, opentype
 from pyasn1.codec.der import decoder 
 from pyasn1.codec.der.decoder import decode
 from pyasn1.codec.der.encoder import encode
 
-from pyasn1_modules import pem
+from pyasn1_alt_modules import pem
 from pyasn1_alt_modules import rfc2986, rfc5280, rfc5751
+
+# debug.setLogger(debug.Debug('all'))
 
 
 # CHANGE ME once TCG assigns one.
@@ -93,22 +94,29 @@ class TcgAttestCertify(univ.Sequence):
         namedtype.OptionalNamedType(TPM_T_PUBLIC, univ.OctetString()),
     )
 
+
+STATEMENT_MAPPINGS = {
+    TCG_ATTEST_CERTIFY_OID: TcgAttestCertify(),
+}
+
+
 # from draft-ietf-lamps-csr-attestation
 # EvidenceStatement ::= SEQUENCE {
 #    type   EVIDENCE-STATEMENT.&id({EvidenceStatementSet}),
 #    stmt   EVIDENCE-STATEMENT.&Type({EvidenceStatementSet}{@type}),
 #    hint   UTF8String OPTIONAL
 # }
-class EvidenceStatementTcgAttestCertify(univ.Sequence):
+class EvidenceStatement(univ.Sequence):
     componentType = namedtype.NamedTypes(
         namedtype.NamedType('type', univ.ObjectIdentifier()),
-        namedtype.NamedType('stmt', TcgAttestCertify()),
+        namedtype.NamedType('stmt', univ.Any(),
+                            openType=opentype.OpenType('type', STATEMENT_MAPPINGS)),
         namedtype.OptionalNamedType('hint', char.UTF8String())
     )
 
 # EvidenceStatements ::= SEQUENCE SIZE (1..MAX) OF EvidenceStatement
 class EvidenceStatements(univ.SequenceOf):
-    componentType = EvidenceStatementTcgAttestCertify()
+    componentType = EvidenceStatement()
     subtypeSpec = constraint.ValueSizeConstraint(1, MAX)
 
 # EvidenceBundle ::= SEQUENCE
@@ -116,7 +124,6 @@ class EvidenceStatements(univ.SequenceOf):
 #   evidence EvidenceStatements,
 #   certs SEQUENCE SIZE (1..MAX) OF CertificateAlternatives OPTIONAL
 # }
-# I'm cheating here and just using rfc5280 Certificate and not bothering with CertificateAlternatives
 class EvidenceBundle(univ.Sequence):
     componentType = namedtype.NamedTypes(
         namedtype.NamedType('evidence', EvidenceStatements()),
@@ -141,18 +148,14 @@ tcg_csr_certify[TPM_T_PUBLIC] = args_vars[TPM_T_PUBLIC_ARG].read()
 #tcg_csr_certify_der = encode(tcg_csr_certify)
 
 # Construct an EvidenceStatement
-evidenceStatement = EvidenceStatementTcgAttestCertify()
+evidenceStatement = EvidenceStatement()
 evidenceStatement['type'] = TCG_CSR_CERTIFY_OID
 evidenceStatement['stmt'] = tcg_csr_certify
 evidenceStatement['hint'] = char.UTF8String(hint)
 
-# Construct an EvidenceStatements
-evidenceBundle_evidenceStatements = EvidenceStatements()
-evidenceBundle_evidenceStatements.append(evidenceStatement)
-
 # Construct an EvidenceBundle
 evidenceBundle = EvidenceBundle()
-evidenceBundle['evidence'].append(evidenceBundle_evidenceStatements)
+evidenceBundle['evidence'].append(evidenceStatement)
 for certFile in args_vars['akCertChain']:
     substrate=pem.readPemFromFile(certFile)
     if substrate == '':
