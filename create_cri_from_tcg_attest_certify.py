@@ -17,7 +17,7 @@ from pyasn1_alt_modules import rfc2986, rfc5280, rfc5751
 
 
 # CHANGE ME once TCG assigns one.
-TCG_ATTEST_CERTIFY_OID = univ.ObjectIdentifier((1, 2, 3, 999))
+TCG_CSR_CERTIFY_OID = univ.ObjectIdentifier((2, 23, 133, 20, 1))
 
 # CHANGE ME once these is early allocation of this 
 # id-aa-evidence OBJECT IDENTIFIER ::= { id-aa TBDAA }
@@ -25,6 +25,7 @@ id_aa_evidence = univ.ObjectIdentifier(rfc5751.id_aa + (59,))
 
 hint = "tpmverifier.example.com"
 
+# Generic upper limit for ASN.1 Sequences and stuff.
 MAX = 10
 
 # RFC 9500 section 2.1
@@ -139,17 +140,17 @@ class EvidenceBundles(univ.SequenceOf):
 
 
 # Construct an Tcg-attest-certify as per draft-ietf-lamps-csr-attestation appendix A.2
-tcg_attest_certify = TcgAttestCertify()
-tcg_attest_certify[TPM_S_ATTEST] = args_vars[TPM_S_ATTEST_ARG].read()
-tcg_attest_certify[SIGNATURE] = args_vars[SIGNATURE_ARG].read()
-tcg_attest_certify[TPM_T_PUBLIC] = args_vars[TPM_T_PUBLIC_ARG].read()
+tcg_csr_certify = TcgAttestCertify()
+tcg_csr_certify[TPM_S_ATTEST] = args_vars[TPM_S_ATTEST_ARG].read()
+tcg_csr_certify[SIGNATURE] = args_vars[SIGNATURE_ARG].read()
+tcg_csr_certify[TPM_T_PUBLIC] = args_vars[TPM_T_PUBLIC_ARG].read()
 
-#tcg_attest_certify_der = encode(tcg_attest_certify)
+#tcg_csr_certify_der = encode(tcg_csr_certify)
 
 # Construct an EvidenceStatement
 evidenceStatement = EvidenceStatement()
-evidenceStatement['type'] = TCG_ATTEST_CERTIFY_OID
-evidenceStatement['stmt'] = tcg_attest_certify
+evidenceStatement['type'] = TCG_CSR_CERTIFY_OID
+evidenceStatement['stmt'] = tcg_csr_certify
 evidenceStatement['hint'] = char.UTF8String(hint)
 
 # Construct an EvidenceBundle
