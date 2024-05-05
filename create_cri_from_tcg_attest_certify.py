@@ -96,7 +96,7 @@ class TcgAttestCertify(univ.Sequence):
 
 
 STATEMENT_MAPPINGS = {
-    TCG_ATTEST_CERTIFY_OID: TcgAttestCertify(),
+    TCG_CSR_CERTIFY_OID: TcgAttestCertify(),
 }
 
 
