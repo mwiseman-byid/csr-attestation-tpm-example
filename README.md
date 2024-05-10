@@ -25,9 +25,9 @@ There is a python sub-component, it requires python3, pip, and venv:
     pip install -r requirements.txt
     ```
 
-## DON'T RUN THIS ON BARE METAL!
+## CAVAET: DON'T RUN THIS ON BARE METAL!
 
-As a note to newbie TPM develeopers, running this code on your bare-metal TPM runs the risk of making your TPM in-operable and therefore causing your operating system fail to boot. The risk of this is low since these scripts simply add more keys to the TPM and do not disturb the existing ones, but still it is recommended that this development be done within a guest OS that gets a virtualized TPM from the hypervisor.
+As a note to newbie TPM develeopers, running this code on your bare-metal TPM runs the risk of causing you to lose TPM assets such as keys or even causing your operating system to fail to boot. While most of the scripts simply add keys, there is a "clear" option that clears the TPM. It is strongly recommended that this development be done within a guest OS that gets a virtualized TPM from the hypervisor or if you must use a bare-metal developement machine, do so starting with the TPM clear and with no dependencies on TPM assets other than those created by these scripts.
 
 ## Description
 
