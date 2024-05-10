@@ -17,7 +17,7 @@ from pyasn1_alt_modules import rfc2986, rfc5280, rfc5751
 
 
 # CHANGE ME once TCG assigns one.
-OID-tcg-attest-tpm-certify = univ.ObjectIdentifier((2, 23, 133, 20, 1))
+OID_cg_attest_tpm_certify = univ.ObjectIdentifier((2, 23, 133, 20, 1))
 
 # CHANGE ME once these is early allocation of this 
 # id-aa-evidence OBJECT IDENTIFIER ::= { id-aa TBDAA }
@@ -96,7 +96,7 @@ class TcgAttestCertify(univ.Sequence):
 
 
 STATEMENT_MAPPINGS = {
-    OID-tcg-attest-tpm-certify: TcgAttestCertify(),
+    OID_cg_attest_tpm_certify: TcgAttestCertify(),
 }
 
 
@@ -149,7 +149,7 @@ tcg_csr_certify[TPM_T_PUBLIC] = args_vars[TPM_T_PUBLIC_ARG].read()
 
 # Construct an EvidenceStatement
 evidenceStatement = EvidenceStatement()
-evidenceStatement['type'] = OID-tcg-attest-tpm-certify
+evidenceStatement['type'] = OID_cg_attest_tpm_certify
 evidenceStatement['stmt'] = tcg_csr_certify
 evidenceStatement['hint'] = char.UTF8String(hint)
 
@@ -157,12 +157,16 @@ evidenceStatement['hint'] = char.UTF8String(hint)
 evidenceBundle = EvidenceBundle()
 evidenceBundle['evidence'].append(evidenceStatement)
 for certFile in args_vars['akCertChain']:
+
+    print("certFile: "+ str(certFile))
+
     substrate=pem.readPemFromFile(certFile)
     if substrate == '':
         print('File '+certFile.name+' could not be read as PEM. Skipping')
         continue
 
     certificate, rest = decoder.decode(io.BytesIO(substrate), asn1Spec=rfc5280.Certificate())
+
     evidenceBundle['certs'].append(certificate)
 
 
