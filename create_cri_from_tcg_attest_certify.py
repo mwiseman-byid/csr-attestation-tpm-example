@@ -17,7 +17,7 @@ from pyasn1_alt_modules import rfc2986, rfc5280, rfc5751
 
 
 # CHANGE ME once TCG assigns one.
-TCG_CSR_CERTIFY_OID = univ.ObjectIdentifier((2, 23, 133, 20, 1))
+OID-tcg-attest-tpm-certify = univ.ObjectIdentifier((2, 23, 133, 20, 1))
 
 # CHANGE ME once these is early allocation of this 
 # id-aa-evidence OBJECT IDENTIFIER ::= { id-aa TBDAA }
@@ -96,7 +96,7 @@ class TcgAttestCertify(univ.Sequence):
 
 
 STATEMENT_MAPPINGS = {
-    TCG_CSR_CERTIFY_OID: TcgAttestCertify(),
+    OID-tcg-attest-tpm-certify: TcgAttestCertify(),
 }
 
 
@@ -149,7 +149,7 @@ tcg_csr_certify[TPM_T_PUBLIC] = args_vars[TPM_T_PUBLIC_ARG].read()
 
 # Construct an EvidenceStatement
 evidenceStatement = EvidenceStatement()
-evidenceStatement['type'] = TCG_CSR_CERTIFY_OID
+evidenceStatement['type'] = OID-tcg-attest-tpm-certify
 evidenceStatement['stmt'] = tcg_csr_certify
 evidenceStatement['hint'] = char.UTF8String(hint)
 
