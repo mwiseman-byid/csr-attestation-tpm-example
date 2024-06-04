@@ -23,8 +23,6 @@ OID_cg_attest_tpm_certify = univ.ObjectIdentifier((2, 23, 133, 20, 1))
 # id-aa-evidence OBJECT IDENTIFIER ::= { id-aa TBDAA }
 id_aa_evidence = univ.ObjectIdentifier(rfc5751.id_aa + (59,))
 
-hint = "tpmverifier.example.com"
-
 # Generic upper limit for ASN.1 Sequences and stuff.
 MAX = 10
 
@@ -104,14 +102,13 @@ STATEMENT_MAPPINGS = {
 # EvidenceStatement ::= SEQUENCE {
 #    type   EVIDENCE-STATEMENT.&id({EvidenceStatementSet}),
 #    stmt   EVIDENCE-STATEMENT.&Type({EvidenceStatementSet}{@type}),
-#    hint   UTF8String OPTIONAL
+#    ...
 # }
 class EvidenceStatement(univ.Sequence):
     componentType = namedtype.NamedTypes(
         namedtype.NamedType('type', univ.ObjectIdentifier()),
         namedtype.NamedType('stmt', univ.Any(),
-                            openType=opentype.OpenType('type', STATEMENT_MAPPINGS)),
-        namedtype.OptionalNamedType('hint', char.UTF8String())
+                            openType=opentype.OpenType('type', STATEMENT_MAPPINGS))
     )
 
 # EvidenceStatements ::= SEQUENCE SIZE (1..MAX) OF EvidenceStatement
@@ -151,7 +148,6 @@ tcg_csr_certify[TPM_T_PUBLIC] = args_vars[TPM_T_PUBLIC_ARG].read()
 evidenceStatement = EvidenceStatement()
 evidenceStatement['type'] = OID_cg_attest_tpm_certify
 evidenceStatement['stmt'] = tcg_csr_certify
-evidenceStatement['hint'] = char.UTF8String(hint)
 
 # Construct an EvidenceBundle
 evidenceBundle = EvidenceBundle()
