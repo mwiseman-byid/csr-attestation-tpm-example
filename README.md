@@ -1,4 +1,5 @@
-# csr-attestation-tpm-example
+csr-attestation-tpm-example
+===========================
 
 ## Dependencies
 This uses the TCG TSS command line utilities from https://github.com/tpm2-software.
