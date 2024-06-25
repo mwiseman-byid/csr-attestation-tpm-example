@@ -1,15 +1,48 @@
 csr-attestation-tpm-example
 ===========================
 
-## Dependencies
-This uses the TCG TSS command line utilities from https://github.com/tpm2-software.
-This is normally obtained by downloading from your distro. However, there is an issue
-with the released files where the command tpm2_print -t TPMS_ATTEST command
-was not implemented. I've filed an issue and was fixed but (as of 23-03-08) was
-not merged. I have copied the fixed file to my own reposity at
-https://github.com/mwiseman-byid/tpm2-tools. This does require building the tpm2-tss
-from the main branch.
+# Dependencies
+## Distro
+These scripts were developed and testing using Ubuntu 22 (as updated on 2024-06-24)
 
+## tpm2-tools
+### Background
+These scripts use the TCG TSS command line utilities [tpm2-tools][https://github.com/tpm2-software/tpm2-tools]. This package is normally
+obtained by installing from your distro using 'apt' in the case of Ubuntu. However, there is an issue with the tpm2_print command
+in tpm2-tools prior the tpm2-tools version 5.7. Ubuntu 22 tpm2-tools repo is based on tpm2-tools prior to version 5.7.
+> Specifically: The tpm2_print -t TPMS_ATTEST option was not implemented
+
+There are three components to the TSS (TPM software stack):
+1. tpm2-tools
+
+    This is the cli used by the scripts
+2. tpm2-tss
+
+    This is the set of libraries used by tpm2-tools to create TPM commands and parse TPM responses. These are automatically
+    installed when installing tpm2-tools as this package is a dependency of tpm2-tools.
+3. tpm2-abrmd
+
+    This is the Access Broker / Resource Manager daemon. While this daemon is not required, it is recommended. While the
+    tpm2-tss library can send TPM commands to /dev/tpmrm0, access requires root privileges, the tpm2-tools cli must
+    be executed as root. The tpm2-abrmd daemon takes TPM commands from non-root applications and sends them to
+    /dev/tpmrm0 as group 'tss'. Installing tpm2-abrmd changes owner and group of /dev/tpmrm0 to 'tss'.
+### Installing the required tpm2-tools
+> While not needed, you may have the distro's tpm2-tss and tpm2-tools installed. The installed libraries and commands below
+> will take priority over the distro's packages. Running 'sudo make uninstall' on the modules below will restore the use of the
+> distro's packages.
+1. Install the distro's tpm2-abrmd.
+> There is no dependency on this being updated from the tpm2-software repo.
+1. Clone [tpm2-tss](https://github.com/tpm2-software/tpm2-tss)
+> Cannot just use the distro's provided tpm2-tss as its not compatible with the new tpm2-tools. 
+2. Clone [tpm2-tools](https://github.com/tpm2-software/tpm2-tools)
+3. Build and install in this order (tpm2-tools depends on installed libraries):
+
+    a. tpm2-tss 
+    > *You must execute ldconfig* (as root) to load the new tpm2-tss libraries.
+
+    b. tpm2-tools
+
+## python
 There is a python sub-component, it requires python3, pip, and venv:
 
 1. Create a virtual environment
@@ -26,13 +59,22 @@ There is a python sub-component, it requires python3, pip, and venv:
     pip install -r requirements.txt
     ```
 
-## CAVAET: DON'T RUN THIS ON BARE METAL!
+## CAVEAT: DON'T RUN THIS ON BARE METAL!
 
-As a note to newbie TPM develeopers, running this code on your bare-metal TPM runs the risk of causing you to lose TPM assets such as keys or even causing your operating system to fail to boot. While most of the scripts simply add keys, there is a "clear" option that clears the TPM. It is strongly recommended that this development be done within a guest OS that gets a virtualized TPM from the hypervisor or if you must use a bare-metal developement machine, do so starting with the TPM clear and with no dependencies on TPM assets other than those created by these scripts.
+As a note to newbie TPM developers, running this code on your bare-metal TPM
+runs the risk of causing you to lose TPM assets such as keys or even causing
+your operating system to fail to boot. While most of the scripts simply add
+keys, there is a "clear" option that clears the TPM. It is strongly recommended
+that this development be done within a guest OS that gets a virtualized TPM from
+the hypervisor or if you must use a bare-metal development machine, do so
+starting with the TPM clear and with no dependencies on TPM assets other than
+those created by these scripts.
 
 ## Description
 
-This example ultimately creates an output file `csr.pem` which is a request to certify `key1` stored within the local TPM and contains the `id-aa-evidence` extension containing a TcgTpmCertify evidence bundle.
+This example ultimately creates an output file `csr.pem` which is a request to
+certify `key1` stored within the local TPM and contains the `id-aa-evidence`
+extension containing a TcgTpmCertify evidence bundle.
 
 If the scripts in this repo are executed in order, then they perform (roughly):
 
@@ -46,7 +88,7 @@ If the scripts in this repo are executed in order, then they perform (roughly):
 
 5. Use the TPM to perform self-checks and verify the Attestation data.
 
-As the tpm2_tools man pages don't specifically state the strutures returned, they
+As the tpm2_tools man pages don't specifically state the structures returned, they
 described here (only the parameters used in this demo are described):
 > tpm2_create
 > >-u TPM2B_PUBLIC (key1.pub)
@@ -83,3 +125,6 @@ the candidate name. If they match, the verify has the TPMT_PUBLIC for the key.
 5. The verifier may already have a copy obtained by various means. One method is by having
 the client send it which is why those two parameters are optional.
 
+
+
+[https://github.com/tpm2-software/tpm2-tools]: https://github.com/tpm2-software/tpm2-tools
