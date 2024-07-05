@@ -1,18 +1,18 @@
-# /bin/bash
+#!/bin/bash
 . ./dirs.sh
 set -e
 
 # Create the TPM Endorsement Key (EK).
-echo -e "Creating EK"
+echo -e "   *** Creating EK"
 tpm2_createek -c $cdir/ek.ctx -u $cdir/ek.pub
 # 
 # Create the Primary Storage Key (SRK). 
-echo -e "\nCreating Primary Storage Key (SRK)"
+echo -e "\n   *** Creating Primary Storage Key (SRK)"
 tpm2_createprimary -C o -c $cdir/primaryStorage.ctx
 #
 # Create the Attestation Key (AK). The AK will be in the Endorsement Hierarchy under the EK.
-echo -e "\nCreating the Attestation Key (AK)"
-tpm2_createak -C $cdir/ek.ctx -G rsa -c $cdir/ak.ctx -u $cdir/ak.pub -r $cdir/ak.priv
+echo -e "\n   *** Creating the Attestation Key (AK)"
+tpm2_createak -C $cdir/ek.ctx -G rsa -c $cdir/ak.ctx -f PEM -u $cdir/ak.pem -r $cdir/ak.priv
 #
 # The following simulates the operation of an Attestation Certification Authority (ACA)
 # However, the process of generating the AK and its AK Certificate is outside the scope of these example scripts. These scripts
@@ -31,13 +31,14 @@ tpm2_createak -C $cdir/ek.ctx -G rsa -c $cdir/ak.ctx -u $cdir/ak.pub -r $cdir/ak
 # tpm2_hash command then signing the result using the AK and returned ticket. This method was not adopted in this version but may be
 # investiaged for a further version.
 
-echo -e "\nCreate the PEM format for the AK public key"
+echo -e "\n   *** Create the PEM format for the AK public key"
 tpm2_readpublic -c $cdir/ak.ctx -f pem -o $cdir/ak.pem
 #
 # Create an AK Certificate
-echo -e "\nCreate a csr for an AK Certificate"
-#openssl req -key $cdir/ak.pem -new -out $cdir/ak.pem
-openssl req -new -noenc -config ./openssl-AK.conf -keyout $cdir/ak-fake.key -out $cdir/ak-fake.csr
+echo -e "\n   *** Create a "fake" csr for an AK Certificate"
+openssl req -new -noenc -config ./openssl-AK-req.conf -keyout $cdir/ak-fake.key -out $cdir/ak-fake.csr
 
-openssl x509 -req -CA $cadir/rootCACert.pem -CAkey $cadir/rootCAKey.pem -force_pubkey $cdir/ak.pem -in $cdir/ak-fake.csr -out $cdir/ak.cert
+echo -e "\n   *** Create certificate using "fake" csr inserting AK public key into the AK Certificate"
+openssl x509 -req -extfile ./openssl-AK-x509.conf -CA $cadir/rootCACert.pem -CAkey $cadir/rootCAKey.pem -force_pubkey $cdir/ak.pem -in $cdir/ak-fake.csr -out $cdir/ak.cert
+#rm $cdir/ak-fake.*
 

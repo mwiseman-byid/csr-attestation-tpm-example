@@ -21,21 +21,21 @@ set -e
 #
 # Note that a PEM formatted file of key1 could be created and passed but that can be done by the verifier. A PEM version of key1 is
 # not part of the TPMS_ATTEST so is not attestable.
-echo -e "*** Creating key1 ***"
+echo -e "\n   *** Creating key1 ***"
 tpm2_create -C $cdir/primaryStorage.ctx -u $cdir/key1.pub -r $cdir/key1.priv
 #
 # The key must be loaded to perform the tpm2_certify command (See Compatibility Note above)
-echo -e "\n*** Loading key1 ***"
+echo -e "\n   ***  Loading key1 ***"
 tpm2_load -C $cdir/primaryStorage.ctx -c $cdir/key1.ctx -u $cdir/key1.pub -r $cdir/key1.priv
 #
 # Attest to key1. This returns a key1.attest is a TPM2B_ATTEST structure
-echo -e "\n*** Get attestation for key1 ***"
+echo -e "\n   *** Get attestation for key1 ***"
 tpm2_certify -C $cdir/ak.ctx -g sha256 -c $cdir/key1.ctx -o $cdir/key1.attest -f plain -s $cdir/key1-attest.sig
 echo "***\nPrint attestation data for key1 (Informational only) ***"
 tpm2_print -t TPMS_ATTEST $cdir/key1.attest
 #
 # Create key1 PEM formatted public key
-echo -e "\nRead the key1 public key in PEM format"
+echo -e "\n   *** Read the key1 public key in PEM format"
 tpm2_readpublic -c $cdir/key1.ctx -f pem -o $cdir/key1.pem
 # Create the attestation_statement as a .tar file for now.
 #tar cvf $cdir/attestation_statement.tar -C $cdir key1.attest key1-attest.sig key1.pub ak.cert
