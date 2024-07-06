@@ -23,6 +23,8 @@ There are three components to the TSS (TPM software stack):
     This is the set of libraries used by tpm2-tools to create TPM commands and parse TPM responses. These are automatically
     installed when installing tpm2-tools as this package is a dependency of tpm2-tools.
 3. tpm2-abrmd
+    > The scripts do no key management. As TPM's have only a limited number of key slots, the manangement of keys relies on the
+    > Access Broker / Resource Manager (tpm2-abrmd).
 
     This is the Access Broker / Resource Manager daemon. While this daemon is not required, it is recommended. While the
     tpm2-tss library can send TPM commands to /dev/tpmrm0, access requires root privileges, the tpm2-tools cli must
