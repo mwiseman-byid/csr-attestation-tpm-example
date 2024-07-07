@@ -18,6 +18,7 @@ cp $cadir/rootCACert.pem $vdir
 
 #tar cvf $cdir/attestation_statement.tar -C $cdir key1.attest key1-attest.sig key1.pub ak.cert
 # These should come from parsing the transmitted key1-csr.pem. That work is not done. Copy these for now.
+# To manually verify the tpm information was put into the csr follow the instructions at the end of this script.
 cp $cdir/ak.cert $vdir
 cp $cdir/key1-pub.pem $vdir
 cp $cdir/key1.tpmTPublic $vdir
@@ -88,3 +89,17 @@ fi
 echo -e "\n   *** Issue key1 Certificate ***"
 openssl x509 -req -extfile ./openssl-key1-x509.conf -CA $cadir/rootCACert.pem -CAkey $cadir/rootCAKey.pem -in $vdir/key1-csr.pem -out $vdir/key1.crt
 
+# To manually verify the tpm information was put into the csr do the following:
+# openssl asn1parse -in verifier/key1-csr.pem
+# Locate the TCG oid: 2.23.133.20.1. The three octet strings are from the RFC
+# Tcg-csr-tpm-certify :: = SEQUENCE {
+#    tpmSAttest OCTET STRING,
+#    signature  OCTET STRING,
+#    tpmTPublic OCTET STRING OPTIONAL
+# }
+# From the screen copy each using the mouse and paste to the command line. Echo that to a file:
+# echo "...copied text from 1st octet string ..." | xxd -r -p - > test/tpmSAttest.fromcsr
+# echo "...copied text from 2nd octet string ..." | xxd -r -p - > test/signature.fromcsr
+# echo "...copied text from 3rd octet string ..." | xxd -r -p - > test/tpmTPublic.fromcsr
+#
+# diff each with the corresponding file in verifier.
