@@ -3,13 +3,15 @@ csr-attestation-tpm-example
 
 # Dependencies
 ## Distro
-These scripts were developed and testing using Ubuntu 22 (as updated on 2024-06-24)
+These scripts were developed and testing using Ubuntu 22 (as updated on 2024-06-24). Other Linux distros are likely to work but were
+not tested.
 
 ## tpm2-tools
 ### Background
-These scripts use the TCG TSS command line utilities [tpm2-tools][https://github.com/tpm2-software/tpm2-tools]. This package is normally
-obtained by installing from your distro using 'apt' in the case of Ubuntu. However, there is an issue with the tpm2_print command
-in tpm2-tools prior the tpm2-tools version 5.7. Ubuntu 22 tpm2-tools repo is based on tpm2-tools prior to version 5.7.
+These scripts use the TCG TSS command line utilities [tpm2-tools](https://github.com/tpm2-software/tpm2-tools). This package is
+normally obtained by installing from your distro using 'apt' in the case of Ubuntu. However, there is an issue with the tpm2_print
+command in tpm2-tools prior the tpm2-tools version 5.7. Ubuntu 22 tpm2-tools repo is based on tpm2-tools prior to version 5.7.
+
 > Specifically: The tpm2_print -t TPMS_ATTEST option was not implemented
 
 There are three components to the TSS (TPM software stack):
@@ -21,6 +23,8 @@ There are three components to the TSS (TPM software stack):
     This is the set of libraries used by tpm2-tools to create TPM commands and parse TPM responses. These are automatically
     installed when installing tpm2-tools as this package is a dependency of tpm2-tools.
 3. tpm2-abrmd
+    > The scripts do no key management. As TPM's have only a limited number of key slots, the manangement of keys relies on the
+    > Access Broker / Resource Manager (tpm2-abrmd).
 
     This is the Access Broker / Resource Manager daemon. While this daemon is not required, it is recommended. While the
     tpm2-tss library can send TPM commands to /dev/tpmrm0, access requires root privileges, the tpm2-tools cli must
@@ -59,7 +63,7 @@ There is a python sub-component, it requires python3, pip, and venv:
     pip install -r requirements.txt
     ```
 
-## CAVEAT: DON'T RUN THIS ON BARE METAL!
+# CAVEAT: DON'T RUN THIS ON BARE METAL!
 
 As a note to newbie TPM developers, running this code on your bare-metal TPM
 runs the risk of causing you to lose TPM assets such as keys or even causing
@@ -70,8 +74,7 @@ the hypervisor or if you must use a bare-metal development machine, do so
 starting with the TPM clear and with no dependencies on TPM assets other than
 those created by these scripts.
 
-## Description
-
+# Description
 This example ultimately creates an output file `csr.pem` which is a request to
 certify `key1` stored within the local TPM and contains the `id-aa-evidence`
 extension containing a TcgTpmCertify evidence bundle.
@@ -105,26 +108,30 @@ described here (only the parameters used in this demo are described):
 > > (in PEM format due to "-f plain")
 
 # How this works
-1. This starts with the assumption that the AK is already created and the AK Cert
-is signed by a CA trusted by the ACA.
+1. The precursor to this would be an Attestation Certification Authority (ACA) verifies the trustworthiness of the TPM by examining
+   the TPM's Endorsement Key Certificate (EK Cert). An Attestation Key (AK) is created within the TPM. Then using a TPM defined
+   protocol the ACA issues an AK Certificate. As this protocol is out of scope for this example, this example will simply create an
+   AK Cert using openssl and Python script.
 
-2. All TPM keys have a "name". The name is a hash of the TPMT_PUBLIC area which includes
-the key's public portion. The TPMT_PUBLIC also contains the key's meta-data such as the
-various attributes and policies. The purpose of this demo is to provide the verifier with
-proof that the information is from a trusted TPM (as trusted by the AK and AK Cert)
+    > The only property of the AK Cert necessary for this example is the presence of the TCG defined OID (2.23.133.8.3:
+    > tcg-kp-AIKCertificate) indicating that the certificate is an AK Certificate. This is the only TCG defined property put into
+    > this example's AK Certificate.
 
-3. The TPM command TPM2_Certify returns a TPMS_ATTEST (wrapped in a TPM2B_ATTEST) structure
-of the loaded key to be certified. The TPMS_ATTEST strucuture contains the key's name
-(it also contain the key's qualifiedName which is not relevant to this demo). The TPMS_ATTEST
-structure is signed by the AK and returned as a signature.
+    > As the role of the CA and the ACA are combined, this example will simply use a single folder "ca".
 
-4. As only the key's name is signed by the AK and sent to the verifier, the verify must
-reconstruct a temporary name from a TPMT_PUBLIC source then compare the signed one with
-the candidate name. If they match, the verify has the TPMT_PUBLIC for the key.
+2. All TPM keys have a "name". The name is a hash of the TPMT_PUBLIC area which includes the key's public portion. The TPMT_PUBLIC
+   also contains the key's meta-data such as the various attributes and policies. The purpose of this demo is to provide the
+   verifier with proof that the information is from a trusted TPM (as trusted by the AK and AK Cert)
 
-5. The verifier may already have a copy obtained by various means. One method is by having
-the client send it which is why those two parameters are optional.
+3. The TPM command TPM2_Certify returns a TPMS_ATTEST (wrapped in a TPM2B_ATTEST) structure of the loaded key to be certified. The
+   TPMS_ATTEST strucuture contains the key's name (it also contain the key's qualifiedName which is not relevant to this demo). The
+   TPMS_ATTEST structure is signed by the AK and returned as a signature.
+
+4. As only the key's name is signed by the AK and sent to the verifier, the verify must reconstruct a temporary name from a
+   TPMT_PUBLIC source then compare the signed one with the candidate name. If they match, the verify has the TPMT_PUBLIC for the
+   key.
+
+5. The verifier may already have a copy obtained by various means. One method is by having the client send it which is why those two
+   parameters are optional.
 
 
-
-[https://github.com/tpm2-software/tpm2-tools]: https://github.com/tpm2-software/tpm2-tools
