@@ -23,13 +23,16 @@ There are three components to the TSS (TPM software stack):
     This is the set of libraries used by tpm2-tools to create TPM commands and parse TPM responses. These are automatically
     installed when installing tpm2-tools as this package is a dependency of tpm2-tools.
 3. tpm2-abrmd
-    > The scripts do no key management. As TPM's have only a limited number of key slots, the manangement of keys relies on the
-    > Access Broker / Resource Manager (tpm2-abrmd).
+    > This is the Access Broker / Resource Manager daemon. While this daemon is not required, it is recommended.
+    > This relieves the application from managing the keys as the TPM typically has limited key slots.
+    >
+    > The scripts do no key management. As TPM's have a limited number of key slots, the manangement of 
+    > keys in these scripts rely on the Access Broker / Resource Manager (tpm2-abrmd).
 
-    This is the Access Broker / Resource Manager daemon. While this daemon is not required, it is recommended. While the
-    tpm2-tss library can send TPM commands to /dev/tpmrm0, access requires root privileges, the tpm2-tools cli must
-    be executed as root. The tpm2-abrmd daemon takes TPM commands from non-root applications and sends them to
-    /dev/tpmrm0 as group 'tss'. Installing tpm2-abrmd changes owner and group of /dev/tpmrm0 to 'tss'.
+    > The TPM driver /dev/tpm0 and /dev/tpmrm0 are installed as root owner and group. When tpm2-abrmd installs
+    > the TPM driver is changed to the 'tss' group. In order to send commands to the TPM, regardless of whether
+    > that is done directly to the TPM's driver or through the tpm2-abrmd the application must be a member of the
+    > 'tss' group.  
 ### Installing the required tpm2-tools
 > While not needed, you may have the distro's tpm2-tss and tpm2-tools installed. The installed libraries and commands below
 > will take priority over the distro's packages. Running 'sudo make uninstall' on the modules below will restore the use of the
