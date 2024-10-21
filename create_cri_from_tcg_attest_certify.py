@@ -134,9 +134,9 @@ class EvidenceBundle(univ.Sequence):
     )
 
 # EvidenceBundles ::= SEQUENCE SIZE (1..MAX) OF EvidenceBundle
-class EvidenceBundles(univ.SequenceOf):
-    componentType = EvidenceBundle()
-    subtypeSpec = constraint.ValueSizeConstraint(1, MAX)
+# class EvidenceBundles(univ.SequenceOf):
+#     componentType = EvidenceBundle()
+#    subtypeSpec = constraint.ValueSizeConstraint(1, MAX)
 
 
 # Construct an Tcg-attest-certify as per draft-ietf-lamps-csr-attestation appendix A.2
@@ -171,8 +171,8 @@ for certFile in args_vars['akCertChain']:
 
 
 # Construct an EvidenceBundles
-evidenceBundles = EvidenceBundles()
-evidenceBundles.append(evidenceBundle)
+# evidenceBundles = EvidenceBundles()
+# evidenceBundles.append(evidenceBundle)
 
 
 # Construct an attr-evidence
@@ -183,7 +183,7 @@ evidenceBundles.append(evidenceBundle)
 # }
 attr_evidence = rfc5280.Attribute()
 attr_evidence['type'] = id_aa_evidence
-attr_evidence['values'].append(evidenceBundles)
+attr_evidence['values'].append(evidenceBundle)
 
 
 csr_builder = x509.CertificateSigningRequestBuilder()
