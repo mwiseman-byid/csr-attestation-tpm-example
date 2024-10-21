@@ -114,16 +114,19 @@ class EvidenceStatement(univ.Sequence):
         namedtype.OptionalNamedType('hint', char.UTF8String())
     )
 
-# EvidenceStatements ::= SEQUENCE SIZE (1..MAX) OF EvidenceStatement
+# EvidenceStatementSet ::= SEQUENCE SIZE (1..MAX) OF EvidenceStatement
 class EvidenceStatementSet(univ.SequenceOf):
     componentType = EvidenceStatement()
     subtypeSpec = constraint.ValueSizeConstraint(1, MAX)
 
-# EvidenceBundle ::= SEQUENCE
-# {
-#   evidence EvidenceStatements,
-#   certs SEQUENCE SIZE (1..MAX) OF CertificateAlternatives OPTIONAL
-# }
+# EvidenceBundle ::= SEQUENCE {
+#   evidences SEQUENCE SIZE (1..MAX) OF EvidenceStatement,
+#   certs SEQUENCE SIZE (1..MAX) OF CertificateChoices OPTIONAL
+#      -- CertificateChoices MUST NOT contain the depreciated
+#      -- certificate structures or attribute certificates,
+#      -- see Section 10.2.2 of [RFC5652]
+#}
+
 class EvidenceBundle(univ.Sequence):
     componentType = namedtype.NamedTypes(
         namedtype.NamedType('evidences', EvidenceStatementSet()),
@@ -132,12 +135,6 @@ class EvidenceBundle(univ.Sequence):
                 subtypeSpec = constraint.ValueSizeConstraint(1, MAX)
         ))
     )
-
-# EvidenceBundles ::= SEQUENCE SIZE (1..MAX) OF EvidenceBundle
-# class EvidenceBundles(univ.SequenceOf):
-#     componentType = EvidenceBundle()
-#    subtypeSpec = constraint.ValueSizeConstraint(1, MAX)
-
 
 # Construct an Tcg-attest-certify as per draft-ietf-lamps-csr-attestation appendix A.2
 tcg_csr_certify = TcgAttestCertify()
@@ -168,11 +165,6 @@ for certFile in args_vars['akCertChain']:
     certificate, rest = decoder.decode(io.BytesIO(substrate), asn1Spec=rfc5280.Certificate())
 
     evidenceBundle['certs'].append(certificate)
-
-
-# Construct an EvidenceBundles
-# evidenceBundles = EvidenceBundles()
-# evidenceBundles.append(evidenceBundle)
 
 
 # Construct an attr-evidence
