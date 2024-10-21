@@ -181,12 +181,12 @@ attr_evidence['values'].append(evidenceBundle)
 csr_builder = x509.CertificateSigningRequestBuilder()
 csr_builder = csr_builder.subject_name(x509.Name(
     [
-        x509.NameAttribute(NameOID.COUNTRY_NAME, 'AU'),
-        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, 'QLD'),
-        x509.NameAttribute(NameOID.LOCALITY_NAME, 'Brisbane'),
-        x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'ietf-119-hackathon'),
-        x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, 'ietf-csr-test'),
-        x509.NameAttribute(NameOID.COMMON_NAME, 'key1')
+        x509.NameAttribute(NameOID.COUNTRY_NAME, 'ZZ'),
+        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, 'Province'),
+        x509.NameAttribute(NameOID.LOCALITY_NAME, 'Locality'),
+        x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'ietf-lamps'),
+        x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, 'ietf-lamps-csr'),
+        x509.NameAttribute(NameOID.COMMON_NAME, 'test-key1')
     ]
 ))
 
