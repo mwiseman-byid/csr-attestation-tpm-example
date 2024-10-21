@@ -115,7 +115,7 @@ class EvidenceStatement(univ.Sequence):
     )
 
 # EvidenceStatements ::= SEQUENCE SIZE (1..MAX) OF EvidenceStatement
-class EvidenceStatements(univ.SequenceOf):
+class EvidenceStatementSet(univ.SequenceOf):
     componentType = EvidenceStatement()
     subtypeSpec = constraint.ValueSizeConstraint(1, MAX)
 
@@ -126,7 +126,7 @@ class EvidenceStatements(univ.SequenceOf):
 # }
 class EvidenceBundle(univ.Sequence):
     componentType = namedtype.NamedTypes(
-        namedtype.NamedType('evidence', EvidenceStatements()),
+        namedtype.NamedType('evidences', EvidenceStatementSet()),
         namedtype.OptionalNamedType('certs', univ.SequenceOf(
             componentType = rfc5280.Certificate()).subtype( 
                 subtypeSpec = constraint.ValueSizeConstraint(1, MAX)
@@ -155,7 +155,7 @@ evidenceStatement['hint'] = char.UTF8String(hint)
 
 # Construct an EvidenceBundle
 evidenceBundle = EvidenceBundle()
-evidenceBundle['evidence'].append(evidenceStatement)
+evidenceBundle['evidences'].append(evidenceStatement)
 for certFile in args_vars['akCertChain']:
 
     print("certFile: "+ str(certFile))
