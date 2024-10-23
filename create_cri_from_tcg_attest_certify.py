@@ -114,30 +114,27 @@ class EvidenceStatement(univ.Sequence):
         namedtype.OptionalNamedType('hint', char.UTF8String())
     )
 
-# EvidenceStatements ::= SEQUENCE SIZE (1..MAX) OF EvidenceStatement
-class EvidenceStatements(univ.SequenceOf):
+# EvidenceStatementSet ::= SEQUENCE SIZE (1..MAX) OF EvidenceStatement
+class EvidenceStatementSet(univ.SequenceOf):
     componentType = EvidenceStatement()
     subtypeSpec = constraint.ValueSizeConstraint(1, MAX)
 
-# EvidenceBundle ::= SEQUENCE
-# {
-#   evidence EvidenceStatements,
-#   certs SEQUENCE SIZE (1..MAX) OF CertificateAlternatives OPTIONAL
-# }
+# EvidenceBundle ::= SEQUENCE {
+#   evidences SEQUENCE SIZE (1..MAX) OF EvidenceStatement,
+#   certs SEQUENCE SIZE (1..MAX) OF CertificateChoices OPTIONAL
+#      -- CertificateChoices MUST NOT contain the depreciated
+#      -- certificate structures or attribute certificates,
+#      -- see Section 10.2.2 of [RFC5652]
+#}
+
 class EvidenceBundle(univ.Sequence):
     componentType = namedtype.NamedTypes(
-        namedtype.NamedType('evidence', EvidenceStatements()),
+        namedtype.NamedType('evidences', EvidenceStatementSet()),
         namedtype.OptionalNamedType('certs', univ.SequenceOf(
             componentType = rfc5280.Certificate()).subtype( 
                 subtypeSpec = constraint.ValueSizeConstraint(1, MAX)
         ))
     )
-
-# EvidenceBundles ::= SEQUENCE SIZE (1..MAX) OF EvidenceBundle
-class EvidenceBundles(univ.SequenceOf):
-    componentType = EvidenceBundle()
-    subtypeSpec = constraint.ValueSizeConstraint(1, MAX)
-
 
 # Construct an Tcg-attest-certify as per draft-ietf-lamps-csr-attestation appendix A.2
 tcg_csr_certify = TcgAttestCertify()
@@ -155,7 +152,7 @@ evidenceStatement['hint'] = char.UTF8String(hint)
 
 # Construct an EvidenceBundle
 evidenceBundle = EvidenceBundle()
-evidenceBundle['evidence'].append(evidenceStatement)
+evidenceBundle['evidences'].append(evidenceStatement)
 for certFile in args_vars['akCertChain']:
 
     print("certFile: "+ str(certFile))
@@ -170,11 +167,6 @@ for certFile in args_vars['akCertChain']:
     evidenceBundle['certs'].append(certificate)
 
 
-# Construct an EvidenceBundles
-evidenceBundles = EvidenceBundles()
-evidenceBundles.append(evidenceBundle)
-
-
 # Construct an attr-evidence
 # -- For PKCS#10
 # attr-evidence ATTRIBUTE ::= {
@@ -183,18 +175,18 @@ evidenceBundles.append(evidenceBundle)
 # }
 attr_evidence = rfc5280.Attribute()
 attr_evidence['type'] = id_aa_evidence
-attr_evidence['values'].append(evidenceBundles)
+attr_evidence['values'].append(evidenceBundle)
 
 
 csr_builder = x509.CertificateSigningRequestBuilder()
 csr_builder = csr_builder.subject_name(x509.Name(
     [
-        x509.NameAttribute(NameOID.COUNTRY_NAME, 'AU'),
-        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, 'QLD'),
-        x509.NameAttribute(NameOID.LOCALITY_NAME, 'Brisbane'),
-        x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'ietf-119-hackathon'),
-        x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, 'ietf-csr-test'),
-        x509.NameAttribute(NameOID.COMMON_NAME, 'key1')
+        x509.NameAttribute(NameOID.COUNTRY_NAME, 'ZZ'),
+        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, 'Province'),
+        x509.NameAttribute(NameOID.LOCALITY_NAME, 'Locality'),
+        x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'ietf-lamps'),
+        x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, 'ietf-lamps-csr'),
+        x509.NameAttribute(NameOID.COMMON_NAME, 'test-key1')
     ]
 ))
 

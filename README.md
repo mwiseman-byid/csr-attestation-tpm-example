@@ -65,6 +65,10 @@ There is a python sub-component, it requires python3, pip, and venv:
     ```shell
     pip install -r requirements.txt
     ```
+4. Install pyasn1-alt-modules
+    The python script uses a fork of the pyans1-modules. The forked module is at:
+    [pyasn1-alt-modules](https://github.com/russhousley/pyasn1-alt-modules.git)
+    This will need to be built and installed.
 
 # CAVEAT: DON'T RUN THIS ON BARE METAL!
 
